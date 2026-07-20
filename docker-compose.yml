@@ -27,6 +27,27 @@ services:
     networks:
       - signalops
 
+  grafana:
+    image: grafana/grafana
+    container_name: signalops-grafana
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+        - grafana-storage:/var/lib/grafana
+        - ./grafana/provisioning:/etc/grafana/provisioning:ro
+
+    depends_on:
+      - prometheus
+
+    networks:
+      - signalops
+
+volumes:
+  grafana-storage:
+
 networks:
   signalops:
     driver: bridge
