@@ -16,6 +16,17 @@ services:
     networks:
       - signalops
 
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: signalops-node-exporter
+    restart: unless-stopped
+
+    ports:
+      - "9100:9100"
+
+    networks:
+      - signalops
+
 networks:
   signalops:
     driver: bridge
