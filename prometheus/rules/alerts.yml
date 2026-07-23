@@ -1,0 +1,29 @@
+groups:
+  - name: signalops-alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Usage on {{ $labels.instance }}"
+          description: "CPU usage on {{ $labels.instance }} is currently at {{ printf \"%.2f\" $value }}% (threshold > 80% for 2m)."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory Usage on {{ $labels.instance }}"
+          description: "RAM usage on {{ $labels.instance }} is currently at {{ printf \"%.2f\" $value }}% (threshold > 90% for 2m)."
+
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Exporter Down: {{ $labels.instance }}"
+          description: "Prometheus has been unable to reach Node Exporter target {{ $labels.instance }} for more than 1 minute."
