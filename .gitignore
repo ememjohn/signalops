@@ -2,18 +2,28 @@
 # Terraform
 # ------------------------------------------------------------------------------
 
+# Terraform working directory
 **/.terraform/*
-*.tfstate
-*.tfstate.*
+
+# Terraform state files
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+
+# Keep the dependency lock file
+!.terraform.lock.hcl
+
+# Terraform plan files
+*.tfplan
+
+# Terraform crash logs
 crash.log
+
+# Terraform override files
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-*.tfplan
-
-# Keep the Terraform dependency lock file
-!.terraform.lock.hcl
 
 # ------------------------------------------------------------------------------
 # Environment Variables
