@@ -1,87 +1,42 @@
-services:
-  prometheus:
-    image: prom/prometheus:v3.13.1
-    container_name: signalops-prometheus
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus:/etc/prometheus:ro
-      - prometheus-data:/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.enable-lifecycle"
-    networks:
-      - signalops
+auth_enabled: false
 
-  node-exporter:
-    image: prom/node-exporter:v1.12.1
-    container_name: signalops-node-exporter
-    restart: unless-stopped
-    pid: host
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-    ports:
-      - "9100:9100"
-    networks:
-      - signalops
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
 
-  loki:
-    image: grafana/loki:3.7.3
-    container_name: signalops-loki
-    restart: unless-stopped
-    ports:
-      - "3100:3100"
-    command:
-      - "-config.file=/etc/loki/loki-config.yml"
-    volumes:
-      - ./loki:/etc/loki:ro
-      - loki-data:/loki
-    networks:
-      - signalops
+common:
+  path_prefix: /loki
+  replication_factor: 1
 
-  promtail:
-    image: grafana/promtail:3.5.5
-    container_name: signalops-promtail
-    restart: unless-stopped
-    command:
-      - "-config.file=/etc/promtail/promtail-config.yml"
-    volumes:
-      - ./promtail:/etc/promtail:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      - loki
-    networks:
-      - signalops
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
 
-  grafana:
-    image: grafana/grafana:13.1.1
-    container_name: signalops-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-storage:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on:
-      - prometheus
-      - loki
-    networks:
-      - signalops
+  ring:
+    kvstore:
+      store: inmemory
 
-volumes:
-  prometheus-data:
-  loki-data:
-  grafana-storage:
+schema_config:
+  configs:
+    - from: "2024-01-01"
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
 
-networks:
-  signalops:
-    driver: bridge
+storage_config:
+  filesystem:
+    directory: /loki/chunks
+
+limits_config:
+  allow_structured_metadata: true
+  volume_enabled: true
+
+compactor:
+  working_directory: /loki/compactor
+
+analytics:
+  reporting_enabled: false
