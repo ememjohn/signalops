@@ -55,16 +55,30 @@ groups:
       # ---------------------------------------------------------
 
       - alert: DiskUsageHigh
-        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"})) * 100 > 85
+        expr: |
+          (
+            100 * (
+              1 -
+              node_filesystem_avail_bytes{
+                fstype!~"tmpfs|overlay|squashfs|iso9660",
+                mountpoint="/"
+              }
+              /
+              node_filesystem_size_bytes{
+                fstype!~"tmpfs|overlay|squashfs|iso9660",
+                mountpoint="/"
+              }
+            )
+          ) > 85
         for: 5m
         labels:
           severity: warning
           team: platform
           project: signalops
         annotations:
-          summary: "High Disk Usage on {{ $labels.instance }} ({{ $labels.mountpoint }})"
-          description: "Filesystem {{ $labels.mountpoint }} is {{ printf \"%.2f\" $value }}% full."
-          action: "Review disk usage with df -h, inspect log directories, and remove unused Docker images or volumes."
+          summary: "High Disk Usage on {{ $labels.instance }}"
+          description: "Disk usage is {{ printf \"%.2f\" $value }}%."
+          action: "Review disk usage with df -h and remove unused files."
 
       # ---------------------------------------------------------
       # Container Metrics Availability
