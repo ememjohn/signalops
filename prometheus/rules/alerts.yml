@@ -58,16 +58,11 @@ groups:
         expr: |
           (
             100 * (
-              1 -
-              node_filesystem_avail_bytes{
-                fstype!~"tmpfs|overlay|squashfs|iso9660",
-                mountpoint="/"
-              }
-              /
-              node_filesystem_size_bytes{
-                fstype!~"tmpfs|overlay|squashfs|iso9660",
-                mountpoint="/"
-              }
+              1 - (
+                node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint="/"}
+                /
+                node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint="/"}
+              )
             )
           ) > 85
         for: 5m
