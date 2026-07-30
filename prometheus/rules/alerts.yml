@@ -55,10 +55,7 @@ groups:
       # ---------------------------------------------------------
 
       - alert: DiskUsageHigh
-        expr: (1 - (
-          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"} /
-          node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"}
-        )) * 100 > 85
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"})) * 100 > 85
         for: 5m
         labels:
           severity: warning

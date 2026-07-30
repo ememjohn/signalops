@@ -33,12 +33,12 @@ resource "aws_security_group" "monitor_sg" {
   }
 
   ingress {
-    description = "Node Exporter"
-    from_port   = 9100
-    to_port     = 9100
-    protocol    = "tcp"
-    cidr_blocks = [var.admin_cidr]
-  }
+  description = "Alertmanager"
+  from_port   = 9093
+  to_port     = 9093
+  protocol    = "tcp"
+  cidr_blocks = [var.admin_cidr]
+}
 
   egress {
     description = "Allow all outbound traffic"
