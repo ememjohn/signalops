@@ -1,29 +1,86 @@
 groups:
   - name: signalops-alerts
     rules:
+
+      # ---------------------------------------------------------
+      # Infrastructure Availability
+      # ---------------------------------------------------------
+
+      - alert: InstanceDown
+        expr: up{job="node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          project: signalops
+        annotations:
+          summary: "Host Unreachable: {{ $labels.instance }}"
+          description: "Prometheus has been unable to scrape node-exporter on {{ $labels.instance }} for more than 2 minutes."
+          action: "Check the EC2 instance, Docker container, network connectivity, and node-exporter service."
+
+      # ---------------------------------------------------------
+      # CPU Utilization
+      # ---------------------------------------------------------
+
       - alert: HighCPUUsage
         expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
         for: 2m
         labels:
           severity: warning
+          team: platform
+          project: signalops
         annotations:
           summary: "High CPU Usage on {{ $labels.instance }}"
-          description: "CPU usage on {{ $labels.instance }} is currently at {{ printf \"%.2f\" $value }}% (threshold > 80% for 2m)."
+          description: "CPU utilization on {{ $labels.instance }} has exceeded 80% for more than 2 minutes (current: {{ printf \"%.2f\" $value }}%)."
+          action: "Inspect CPU-intensive processes or containers using top, htop, docker stats, or Grafana dashboards."
+
+      # ---------------------------------------------------------
+      # Memory Utilization
+      # ---------------------------------------------------------
 
       - alert: HighMemoryUsage
         expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
         for: 2m
         labels:
           severity: warning
+          team: platform
+          project: signalops
         annotations:
           summary: "High Memory Usage on {{ $labels.instance }}"
-          description: "RAM usage on {{ $labels.instance }} is currently at {{ printf \"%.2f\" $value }}% (threshold > 90% for 2m)."
+          description: "Memory utilization on {{ $labels.instance }} has exceeded 90% (current: {{ printf \"%.2f\" $value }}%)."
+          action: "Check for memory-intensive services or containers using free -m, docker stats, and Grafana."
 
-      - alert: NodeExporterDown
-        expr: up{job="node-exporter"} == 0
-        for: 1m
+      # ---------------------------------------------------------
+      # Disk Usage
+      # ---------------------------------------------------------
+
+      - alert: DiskUsageHigh
+        expr: (1 - (
+          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"} /
+          node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660",mountpoint!~"^/(sys|proc|dev|run)($|/)"}
+        )) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          project: signalops
+        annotations:
+          summary: "High Disk Usage on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          description: "Filesystem {{ $labels.mountpoint }} is {{ printf \"%.2f\" $value }}% full."
+          action: "Review disk usage with df -h, inspect log directories, and remove unused Docker images or volumes."
+
+      # ---------------------------------------------------------
+      # Container Metrics Availability
+      # ---------------------------------------------------------
+
+      - alert: cAdvisorDown
+        expr: up{job="cadvisor"} == 0
+        for: 2m
         labels:
           severity: critical
+          team: platform
+          project: signalops
         annotations:
-          summary: "Node Exporter Down: {{ $labels.instance }}"
-          description: "Prometheus has been unable to reach Node Exporter target {{ $labels.instance }} for more than 1 minute."
+          summary: "cAdvisor Unreachable"
+          description: "Prometheus has been unable to scrape cAdvisor metrics for more than 2 minutes."
+          action: "Verify the cAdvisor container is running and reachable."

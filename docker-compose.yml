@@ -15,6 +15,21 @@ services:
     networks:
       - signalops
 
+  alertmanager:
+    image: prom/alertmanager:v0.29.0
+    container_name: signalops-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      - signalops
+
   node-exporter:
     image: prom/node-exporter:v1.12.1
     container_name: signalops-node-exporter
@@ -93,6 +108,7 @@ services:
     depends_on:
       - prometheus
       - loki
+      - alertmanager
     networks:
       - signalops
 
@@ -100,6 +116,7 @@ volumes:
   prometheus-data:
   loki-data:
   grafana-storage:
+  alertmanager-data:
 
 networks:
   signalops:
