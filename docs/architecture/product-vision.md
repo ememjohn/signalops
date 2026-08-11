@@ -293,7 +293,7 @@ The platform should eventually allow engineers to move from:
 
 within a single observability workflow.
 
-SignalOps may also serve as an observability component for other infrastructure platforms and engineering systems, including future integration with INSYRIO.
+SignalOps may also serve as an observability component for other infrastructure platforms and engineering systems, including future integration.
 
 ---
 
