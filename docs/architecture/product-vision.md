@@ -2,11 +2,13 @@
 
 ## Overview
 
-SignalOps is a production-oriented infrastructure observability platform designed to provide engineers with centralized visibility into system health, performance, logs, and operational reliability across cloud infrastructure.
+SignalOps is a production-oriented infrastructure observability platform that provides centralized visibility into infrastructure health, system performance, container resources, logs, and operational reliability.
 
-The platform combines metrics collection, infrastructure monitoring, dashboards, centralized logging, alerting, and infrastructure automation into a reproducible observability stack.
+The platform runs on AWS EC2 and uses Terraform to provision the underlying infrastructure. Docker Compose manages the observability services, including Prometheus, Grafana, Loki, Promtail, Node Exporter, cAdvisor, and Alertmanager.
 
-SignalOps is designed around the operational needs of cloud, DevOps, platform engineering, and SRE teams that need reliable visibility into infrastructure without depending on a collection of disconnected monitoring tools.
+Prometheus collects host and container metrics, while Promtail and Loki provide centralized log collection and storage. Grafana provides operational dashboards for metrics and logs, while Prometheus alert rules and Alertmanager support infrastructure alerting.
+
+The project keeps its infrastructure and observability configuration version-controlled and uses GitHub Actions for CI validation, making the environment reproducible and easier to maintain.
 
 ---
 
